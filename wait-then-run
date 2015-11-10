@@ -25,7 +25,7 @@ for service in $(echo $services | sed "s/,/ /g"); do
   host=${service%%:*} 
   port=${service##*:}
   echo "Waiting for TCP port $port on $host"
-  while ! nc -w 1 $host $port 1>/dev/null 2>/dev/null; do
+  while ! nc -z -w 1 $host $port 1>/dev/null 2>/dev/null; do
     echo "... still waiting ..."
     sleep 1
   done
