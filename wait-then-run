@@ -1,0 +1,36 @@
+#!/bin/sh
+
+# Inspired by https://github.com/aanand/docker-wait
+
+# Requires
+# - sh
+# - sed
+# - nc
+
+# Usage:
+# First argument: Comma-separated list of host:port to check. No spaces!
+# Second argument: Command to run after all ports have responded.
+#
+# $ wait-then-run db.my.net:3306,memcache.my.net:11211 /app/bin/server
+
+set -e
+
+services=$1
+command=$(echo $* | sed -e "s/$services *//")
+
+echo "Services: $services"
+echo "Command: '$command'"
+
+for service in $(echo $services | sed "s/,/ /g"); do
+  host=${service%%:*} 
+  port=${service##*:}
+  echo "Waiting for TCP port $port on $host"
+  while ! nc -w 1 $host $port 1>/dev/null 2>/dev/null; do
+    echo "... still waiting ..."
+    sleep 1
+  done
+done
+
+echo "Ready!"
+
+(eval "$command")
